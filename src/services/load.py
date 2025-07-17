@@ -9,7 +9,7 @@ from typing import Dict, List, Any
 import psycopg2
 from psycopg2.extras import execute_values
 
-from config import settings
+from src.core.config import settings
 
 logger = logging.getLogger(__name__)
 

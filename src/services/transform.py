@@ -9,7 +9,7 @@ from datetime import datetime
 
 from textblob import TextBlob
 
-from constants import BAR_NAMES
+from src.core.constants import BAR_NAMES
 
 logger = logging.getLogger(__name__)
 

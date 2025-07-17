@@ -6,9 +6,9 @@ import logging
 import sys
 from argparse import ArgumentParser, Namespace
 
-from extract import extract_reddit_data
-from transform import transform_posts
-from load import load_to_postgres, summarize_sentiment
+from src.services.extract import extract_reddit_data
+from src.services.transform import transform_posts
+from src.services.load import load_to_postgres, summarize_sentiment
 
 
 def _configure_logging(verbose: bool = False) -> None:

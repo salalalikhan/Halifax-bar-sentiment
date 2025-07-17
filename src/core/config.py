@@ -10,7 +10,7 @@ class Settings(BaseSettings):
 
     reddit_client_id: str
     reddit_client_secret: str
-    reddit_user_agent: str = "Halifax Bar Sentiment Bot"
+    reddit_user_agent: str = "Halifax Bar Analytics Bot"
 
     postgres_dbname: str
     postgres_user: str

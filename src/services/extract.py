@@ -8,8 +8,8 @@ from typing import List, Dict, Any
 import praw
 from prawcore.exceptions import PrawcoreException, RequestException, ResponseException
 
-from config import settings
-from constants import BAR_NAMES
+from src.core.config import settings
+from src.core.constants import BAR_NAMES
 
 logger = logging.getLogger(__name__)
 
