@@ -3,11 +3,34 @@
 This project analyzes sentiment and mentions of Halifax bars from Reddit discussions. It collects data from r/halifax, performs sentiment analysis, and stores the results in a PostgreSQL database.
 
 ## Features
-- Reddit data collection from r/halifax
-- Sentiment analysis of bar mentions
-- Food and drink mention tracking
-- PostgreSQL database storage
-- Automated ETL (Extract, Transform, Load) pipeline
+
+### 🚀 Core Features
+- **Advanced Sentiment Analysis**: Multi-model ensemble with VADER, RoBERTa, and TextBlob for accurate sentiment scoring
+- **Real-time Dashboard**: Interactive React frontend with charts and analytics
+- **Comprehensive API**: RESTful FastAPI backend with full documentation
+- **Data Quality Management**: Automated validation, spam filtering, and quality scoring
+- **Reddit Integration**: Automated data collection from r/halifax with comment processing
+
+### 📊 Analytics & Insights
+- **Sentiment Trends**: Track sentiment changes over time with customizable periods
+- **Bar Comparisons**: Compare multiple bars across different metrics
+- **Food & Drink Tracking**: Identify trending food and drink mentions
+- **Geographic Analysis**: Halifax-specific bar sentiment mapping
+- **Seasonal Patterns**: Detect seasonal trends and patterns
+
+### 🔧 Technical Features
+- **Monitoring & Logging**: Comprehensive structured logging with performance metrics
+- **Health Checks**: Automated system health monitoring and alerting
+- **Error Tracking**: Advanced error tracking with threshold-based alerts
+- **Data Validation**: Robust data validation with Pydantic models
+- **Background Processing**: Asynchronous job processing for large datasets
+
+### 🛡️ Production Ready
+- **Docker Support**: Full containerization with docker-compose
+- **Database Optimization**: Indexed PostgreSQL with connection pooling
+- **Caching**: Redis integration for improved performance
+- **Security**: CORS, rate limiting, and security headers
+- **Scalability**: Horizontal scaling support with load balancing
 
 ## Latest Analysis Results
 
@@ -57,7 +80,7 @@ cp env.example .env
 # Reddit API credentials
 REDDIT_CLIENT_ID=your_client_id_here
 REDDIT_CLIENT_SECRET=your_client_secret_here
-REDDIT_USER_AGENT=Halifax Bar Sentiment Bot
+REDDIT_USER_AGENT=Halifax Bar Analytics Tool
 
 # PostgreSQL connection details
 POSTGRES_DBNAME=halifaxbars
