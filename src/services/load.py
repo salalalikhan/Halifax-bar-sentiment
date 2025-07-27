@@ -16,11 +16,11 @@ logger = logging.getLogger(__name__)
 
 def _get_db_connection():
     return psycopg2.connect(
-        dbname=settings.postgres_dbname,
-        user=settings.postgres_user,
-        password=settings.postgres_password,
-        host=settings.postgres_host,
-        port=settings.postgres_port,
+        dbname=settings.db_database,
+        user=settings.db_user,
+        password=settings.db_password,
+        host=settings.db_host,
+        port=settings.db_port,
     )
 
 
