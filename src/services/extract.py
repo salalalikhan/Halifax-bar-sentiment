@@ -35,6 +35,30 @@ def _build_search_query() -> str:
     return " OR ".join(terms)
 
 
+class RedditExtractor:
+    """Reddit data extraction service."""
+    
+    def __init__(self):
+        """Initialize Reddit extractor."""
+        self.reddit = None
+    
+    def test_connection(self) -> bool:
+        """Test Reddit API connection."""
+        try:
+            reddit = _get_reddit_client()
+            # Test by getting user info (doesn't require OAuth)
+            reddit.user.me()
+            return True
+        except Exception:
+            return False
+    
+    async def extract_posts(self, limit: int = 1000, subreddit: str = "halifax") -> List[Dict[str, Any]]:
+        """Extract posts from Reddit."""
+        import asyncio
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(None, extract_reddit_data, limit)
+
+
 def extract_reddit_data(limit: int = 1_000) -> List[Dict[str, Any]]:
     """Fetch Reddit submissions and comments mentioning Halifax bars."""
     reddit = _get_reddit_client()
