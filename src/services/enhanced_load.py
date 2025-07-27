@@ -26,11 +26,11 @@ class DatabaseManager:
         if self._connection is None or self._connection.closed:
             try:
                 self._connection = psycopg2.connect(
-                    dbname=settings.postgres_dbname,
-                    user=settings.postgres_user,
-                    password=settings.postgres_password,
-                    host=settings.postgres_host,
-                    port=settings.postgres_port,
+                    dbname=settings.db_database,
+                    user=settings.db_user,
+                    password=settings.db_password,
+                    host=settings.db_host,
+                    port=settings.db_port,
                     # Connection options for better performance
                     options="-c statement_timeout=30000"  # 30 second timeout
                 )
@@ -48,7 +48,7 @@ class DatabaseManager:
             logger.debug("Database connection closed")
 
 
-class EnhancedDataLoader:
+class EnhancedLoader:
     """Enhanced data loader with advanced schema and analytics."""
     
     def __init__(self):
@@ -172,28 +172,28 @@ class EnhancedDataLoader:
                         UPDATE bars 
                         SET 
                             total_mentions = (
-                                SELECT COUNT(*) FROM mentions WHERE bar_name = NEW.bar_name
+                                SELECT COUNT(*) FROM bar_mentions WHERE bar_name = NEW.bar_name
                             ),
                             avg_sentiment = (
-                                SELECT AVG(sentiment_score) FROM mentions WHERE bar_name = NEW.bar_name
+                                SELECT AVG(sentiment_score) FROM bar_mentions WHERE bar_name = NEW.bar_name
                             ),
                             avg_confidence = (
-                                SELECT AVG(sentiment_confidence) FROM mentions WHERE bar_name = NEW.bar_name
+                                SELECT AVG(sentiment_confidence) FROM bar_mentions WHERE bar_name = NEW.bar_name
                             ),
                             positive_mentions = (
-                                SELECT COUNT(*) FROM mentions 
+                                SELECT COUNT(*) FROM bar_mentions 
                                 WHERE bar_name = NEW.bar_name AND sentiment_label = 'positive'
                             ),
                             negative_mentions = (
-                                SELECT COUNT(*) FROM mentions 
+                                SELECT COUNT(*) FROM bar_mentions 
                                 WHERE bar_name = NEW.bar_name AND sentiment_label = 'negative'
                             ),
                             neutral_mentions = (
-                                SELECT COUNT(*) FROM mentions 
+                                SELECT COUNT(*) FROM bar_mentions 
                                 WHERE bar_name = NEW.bar_name AND sentiment_label = 'neutral'
                             ),
                             last_mention = (
-                                SELECT MAX(created_at) FROM mentions WHERE bar_name = NEW.bar_name
+                                SELECT MAX(created_at) FROM bar_mentions WHERE bar_name = NEW.bar_name
                             ),
                             updated_at = CURRENT_TIMESTAMP
                         WHERE name = NEW.bar_name;
@@ -297,7 +297,7 @@ class EnhancedDataLoader:
                         SUM(CASE WHEN sentiment_label = 'positive' THEN 1 ELSE 0 END) as positive_count,
                         SUM(CASE WHEN sentiment_label = 'negative' THEN 1 ELSE 0 END) as negative_count,
                         SUM(CASE WHEN sentiment_label = 'neutral' THEN 1 ELSE 0 END) as neutral_count
-                    FROM mentions 
+                    FROM bar_mentions 
                     WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'
                     GROUP BY DATE(created_at), bar_name
                     ON CONFLICT (date, bar_name) DO UPDATE SET
@@ -350,9 +350,9 @@ class EnhancedDataLoader:
                         sentiment_distribution, top_bars, trending_foods, data_quality_score
                     )
                     SELECT 
-                        (SELECT COUNT(*) FROM mentions) as total_mentions,
+                        (SELECT COUNT(*) FROM bar_mentions) as total_mentions,
                         (SELECT COUNT(*) FROM bars WHERE total_mentions > 0) as unique_bars,
-                        (SELECT AVG(sentiment_score) FROM mentions) as avg_sentiment_score,
+                        (SELECT AVG(sentiment_score) FROM bar_mentions) as avg_sentiment_score,
                         (
                             SELECT jsonb_build_object(
                                 'positive', COUNT(*) FILTER (WHERE sentiment_label = 'positive'),
@@ -374,7 +374,7 @@ class EnhancedDataLoader:
                             SELECT jsonb_agg(jsonb_build_object('food', food_item, 'count', mention_count))
                             FROM (
                                 SELECT unnest(food_mentions) as food_item, COUNT(*) as mention_count
-                                FROM mentions 
+                                FROM bar_mentions 
                                 WHERE created_at >= CURRENT_DATE - INTERVAL '30 days'
                                 GROUP BY food_item
                                 ORDER BY mention_count DESC
@@ -395,6 +395,24 @@ class EnhancedDataLoader:
             logger.error(f"Error generating analytics summary: {e}")
             raise
     
+    async def load_processed_data(self, processed_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Load processed data and return results."""
+        mentions = processed_data.get("mentions", [])
+        quality_metrics = processed_data.get("quality_metrics", {})
+        
+        if mentions:
+            import asyncio
+            loop = asyncio.get_event_loop()
+            await loop.run_in_executor(None, self.create_enhanced_schema)
+            await loop.run_in_executor(None, self.load_enhanced_data, mentions, quality_metrics)
+            await loop.run_in_executor(None, self.generate_analytics_summary)
+        
+        return {
+            "mentions_loaded": len(mentions),
+            "quality_score": quality_metrics.get("data_quality_score", 0),
+            "new_bars": len(set(m["bar_name"] for m in mentions))
+        }
+    
     def close(self):
         """Close database connections."""
         self.db_manager.close_connection()
@@ -403,7 +421,7 @@ class EnhancedDataLoader:
 # Enhanced functions for backwards compatibility and new features
 def load_to_postgres(data: List[Dict[str, Any]], quality_metrics: Optional[Dict[str, Any]] = None) -> None:
     """Enhanced data loading with backwards compatibility."""
-    loader = EnhancedDataLoader()
+    loader = EnhancedLoader()
     
     try:
         # Create schema if it doesn't exist
@@ -447,7 +465,7 @@ def summarize_sentiment(start_date: datetime = None, end_date: datetime = None) 
                         COUNT(*) as total_mentions,
                         AVG(sentiment_score) as avg_sentiment,
                         AVG(sentiment_confidence) as avg_confidence
-                    FROM mentions
+                    FROM bar_mentions
                 """)
                 stats = cur.fetchone()
                 
